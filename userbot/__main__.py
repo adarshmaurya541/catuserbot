@@ -94,20 +94,36 @@ async def init_all():
         await setup_bot()
         await startup_process()
         await externalrepo()
-        register_web_routes(app)
     except Exception as e:
         LOGS.error(f"Error in initialization: {e}")
         raise
 
 
-def run_flask():
+def run_flask(port):
     """Run Flask server"""
     try:
-        port = int(os.environ.get("PORT", "10000"))
         LOGS.info(f"Starting Flask server on port {port}")
-        app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False)
+        app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False, threaded=True)
     except Exception as e:
         LOGS.error(f"Flask server error: {e}")
+
+
+def health_ports():
+    """Ports that must accept connections before plugin loading finishes.
+
+    Koyeb's TCP probe uses 8000. PORT may be a different value from .env.
+    """
+    ports = {8000}
+    raw_port = os.environ.get("PORT")
+    if raw_port:
+        ports.add(int(raw_port))
+    return ports
+
+
+def start_health_server():
+    register_web_routes(app)
+    for port in sorted(health_ports()):
+        threading.Thread(target=run_flask, args=(port,), daemon=True).start()
 
 
 async def main():
@@ -115,16 +131,12 @@ async def main():
     scheduler = None
     try:
         LOGS.info("Starting Userbot")
+        start_health_server()
         await init_all()
         LOGS.info("TG Bot Startup Completed")
 
         # Start uptime pinger
         scheduler = start_uptime_pinger()
-
-        # Start Flask server in background thread
-        flask_thread = threading.Thread(target=run_flask, daemon=True)
-        flask_thread.start()
-        LOGS.info("Flask server started in background")
 
         # Keep bot running
         await catub.run_until_disconnected()
