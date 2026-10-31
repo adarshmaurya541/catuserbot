@@ -1,21 +1,35 @@
-FROM catub/core:bullseye
+FROM python:3.11-slim-bookworm
 
-# Working directory
 WORKDIR /userbot
 
-# Timezone
-ENV TZ=Asia/Kolkata
+ENV TZ=Asia/Kolkata \
+    DEBIAN_FRONTEND=noninteractive \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONUNBUFFERED=1
 
-## Copy files into the Docker image
+# catub/core:bullseye is Python 3.9. wikipedia and current yt-dlp require 3.11.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    ffmpeg \
+    gcc \
+    git \
+    libffi-dev \
+    libjpeg62-turbo-dev \
+    libmagickwand-dev \
+    libpq-dev \
+    libwebp-dev \
+    mediainfo \
+    unzip \
+    wget \
+    zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY . .
 
-ENV PATH="/home/userbot/bin:$PATH"
+ENV PATH="/userbot/bin:${PATH}"
 
-# catub/core:bullseye is Python 3.9. Pillow 12+ does not support 3.9.
-# Install a 3.9-compatible Pillow first, then the rest of requirements.
-RUN pip install --no-cache-dir "Pillow==10.4.0" \
-&& grep -ivE '^[[:space:]]*Pillow' requirements.txt > /tmp/requirements.nopillow.txt \
-&& pip install --no-cache-dir -r /tmp/requirements.nopillow.txt
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
 
-
-CMD ["python3","-m","userbot"]
+CMD ["python3", "-m", "userbot"]
