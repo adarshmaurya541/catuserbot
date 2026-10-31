@@ -1,4 +1,3 @@
-
 FROM catub/core:bullseye
 
 # Working directory
@@ -12,8 +11,11 @@ COPY . .
 
 ENV PATH="/home/userbot/bin:$PATH"
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# catub/core:bullseye is Python 3.9. Pillow 12+ does not support 3.9.
+# Install a 3.9-compatible Pillow first, then the rest of requirements.
+RUN pip install --no-cache-dir "Pillow==10.4.0" \
+&& grep -ivE '^[[:space:]]*Pillow' requirements.txt > /tmp/requirements.nopillow.txt \
+&& pip install --no-cache-dir -r /tmp/requirements.nopillow.txt
 
 
 CMD ["python3","-m","userbot"]

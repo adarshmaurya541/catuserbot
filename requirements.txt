@@ -4,7 +4,7 @@ cinemagoer
 cloudscraper
 colour
 cowpy
-emoji==2.16.0
+emoji==1.7.0
 fonttools
 flask
 geopy
@@ -27,7 +27,8 @@ lyricsgenius
 markdown
 motor
 openai
-Pillow==12.3.0; python_version < "3.11"
+Pillow==10.4.0; python_version < "3.10"
+Pillow==12.3.0; python_version >= "3.10" and python_version < "3.11"
 Pillow==13.0.0; python_version >= "3.11"
 pre-commit
 prettytable
@@ -52,13 +53,14 @@ somnium
 spamwatch
 speedtest-cli
 sqlalchemy-json
-sqlalchemy>=2.0.47,<2.1
+sqlalchemy==1.3.23
 sqlalchemy-cockroachdb
 telegraph==2.1.0
 tgcrypto
 ujson
 urlextract
 validators
+vcsi==7.0.15
 wand
 wget
 
